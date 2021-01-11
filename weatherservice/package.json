@@ -1,0 +1,25 @@
+{
+  "name": "weatherservice",
+  "version": "1.0.0",
+  "description": "gRPC API Weather Service",
+  "main": "server.js",
+  "dependencies": {
+    "@grpc/proto-loader": "^0.5.5",
+    "grpc": "^1.24.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kino1994/weatherservice.git"
+  },
+  "author": "Joaquin Antonio De Vicente Lopez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kino1994/weatherservice/issues"
+  },
+  "homepage": "https://github.com/Kino1994/weatherservice#readme"
+}
