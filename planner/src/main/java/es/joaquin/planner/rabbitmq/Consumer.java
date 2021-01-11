@@ -27,18 +27,9 @@ public class Consumer {
 	@RabbitListener(queues = "eoloplantCreationRequests", ackMode = "AUTO")
 	public void sendMessage(EoloPlantResponse eoloplantResponse) throws InterruptedException {
 
-		String city;
-
-		if (eoloplantResponse.getCity().matches("^[A-Ma-m].*")) {
-			city = eoloplantResponse.getCity().toLowerCase();
-		}
-
-		else {
-			city = eoloplantResponse.getCity().toUpperCase();
-		}
-
 		eoloplantResponse.setProgress(0);
-		eoloplantResponse.setPlanning(city + SEPARATOR);
+		eoloplantResponse.setPlanning(null);
+		eoloplantResponse.setCompleted(false);
 		producer.received(eoloplantResponse);
 
 		CompletableFuture<String> weatherFuture = weatherServiceClient.getWeather(eoloplantResponse.getCity());
@@ -46,22 +37,40 @@ public class Consumer {
 		CompletableFuture<Void> completedFutures = CompletableFuture.allOf(weatherFuture, landscapeFuture);
 
 		eoloplantResponse.setProgress(25);
+		eoloplantResponse.setPlanning(null);
+		eoloplantResponse.setCompleted(false);
 		producer.received(eoloplantResponse);
 
 		weatherFuture.thenRun(() -> {
 			eoloplantResponse.setPlanning(eoloplantResponse.getCity() + weatherFuture.join() + SEPARATOR);
+			if (eoloplantResponse.getCity().matches("^[A-Ma-m].*")) {
+				eoloplantResponse.setPlanning(eoloplantResponse.getPlanning().toLowerCase());
+			}
+			else {
+				eoloplantResponse.setPlanning(eoloplantResponse.getPlanning().toUpperCase());
+			}
 			eoloplantResponse.setProgress(eoloplantResponse.getProgress() + 25);
+			eoloplantResponse.setCompleted(false);
 			producer.received(eoloplantResponse);
 		});
 
 		landscapeFuture.thenRun(() -> {
 			eoloplantResponse.setPlanning(eoloplantResponse.getCity() + landscapeFuture.join() + SEPARATOR);
+			if (eoloplantResponse.getCity().matches("^[A-Ma-m].*")) {
+				eoloplantResponse.setPlanning(eoloplantResponse.getPlanning().toLowerCase());
+			}
+			else {
+				eoloplantResponse.setPlanning(eoloplantResponse.getPlanning().toUpperCase());
+			}
 			eoloplantResponse.setProgress(eoloplantResponse.getProgress() + 25);
+			eoloplantResponse.setCompleted(false);
 			producer.received(eoloplantResponse);
 		});
 
 		completedFutures.thenRun(() -> {
+			eoloplantResponse.setPlanning(eoloplantResponse.getPlanning().substring(0, eoloplantResponse.getPlanning().length() -1));
 			eoloplantResponse.setProgress(100);
+			eoloplantResponse.setCompleted(true);
 			producer.received(eoloplantResponse);
 		});
 	}
